@@ -1,0 +1,6 @@
+openpyxl
+tiktoken
+# live benchmark only (real_benchmark.py / graph_client.py):
+msal
+requests
+python-dotenv

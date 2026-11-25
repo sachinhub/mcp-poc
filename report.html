@@ -1,0 +1,410 @@
+<title>Code Execution with MCP — Retail POC</title>
+<meta name="description" content="Measured context-token comparison: querying retail SharePoint lists directly vs. via the code-execution-with-MCP approach.">
+<style>
+  :root {
+    --ink: #14171c;
+    --paper: #ffffff;
+    --ground: #f5f7f9;
+    --hair: #e3e7ec;
+    --grey: #5b646f;
+    --grey-soft: #8a929c;
+    --teal: #0e7c7b;      /* code-execution path */
+    --teal-wash: #e3f1f0;
+    --clay: #b4512a;      /* direct path */
+    --clay-wash: #f6e7df;
+    --blue: #3a6ea5;      /* microsoft graph path */
+    --blue-wash: #e6edf5;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+    --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 56px 28px 96px; }
+
+  /* masthead */
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin: 0 0 14px;
+  }
+  h1 {
+    font-size: clamp(30px, 5vw, 46px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 16px;
+    text-wrap: balance;
+    font-weight: 680;
+  }
+  .lede {
+    font-size: 18px;
+    color: var(--grey);
+    max-width: 62ch;
+    margin: 0;
+  }
+  .lede b { color: var(--ink); font-weight: 600; }
+
+  /* hero stat band */
+  .band {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--hair);
+    border: 1px solid var(--hair);
+    border-radius: 14px;
+    overflow: hidden;
+    margin: 40px 0 8px;
+  }
+  .stat { background: var(--paper); padding: 24px 22px; }
+  .stat .k {
+    font-family: var(--mono);
+    font-size: clamp(26px, 4.4vw, 38px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    display: block;
+    line-height: 1.1;
+  }
+  .stat .k.win { color: var(--teal); }
+  .stat .k.cost { color: var(--clay); }
+  .stat .l {
+    font-size: 13px;
+    color: var(--grey);
+    margin-top: 6px;
+  }
+  .caption {
+    font-size: 13px;
+    color: var(--grey-soft);
+    font-family: var(--mono);
+    margin: 0 0 48px;
+  }
+
+  h2 {
+    font-size: 13px;
+    font-family: var(--mono);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--grey);
+    margin: 48px 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--hair);
+  }
+
+  /* per-query rows */
+  .q { padding: 20px 0; border-bottom: 1px solid var(--hair); }
+  .q:last-child { border-bottom: 0; }
+  .q-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .q-id {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--teal);
+    background: var(--teal-wash);
+    padding: 2px 7px;
+    border-radius: 5px;
+  }
+  .q-text { font-size: 15.5px; font-weight: 520; }
+  .q-meta {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--grey-soft);
+    margin-left: auto;
+    white-space: nowrap;
+  }
+  .bars { display: grid; gap: 8px; }
+  .barrow { display: grid; grid-template-columns: 76px 1fr 128px; align-items: center; gap: 12px; }
+  .barrow .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--grey);
+  }
+  .track { height: 20px; background: var(--ground); border-radius: 5px; overflow: hidden; }
+  .fill { height: 100%; border-radius: 5px; }
+  .fill.cost { background: var(--clay); }
+  .fill.graph { background: var(--blue); min-width: 2px; }
+  .fill.win { background: var(--teal); min-width: 3px; }
+  .stat .k.graph { color: var(--blue); }
+  .barrow .num {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    color: var(--ink);
+  }
+  .barrow .num small { color: var(--grey-soft); }
+
+  /* mechanism three-up */
+  .mech { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 760px) { .mech { grid-template-columns: 1fr; } }
+  @media (max-width: 680px) { .barrow { grid-template-columns: 68px 1fr; } .barrow .num { grid-column: 2; text-align: left; } .q-meta { display:none; } }
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--hair);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .card.direct { border-top: 3px solid var(--clay); }
+  .card.graph { border-top: 3px solid var(--blue); }
+  .card.code { border-top: 3px solid var(--teal); }
+  .card.graph .flow li::before { color: var(--blue); }
+  .card h3 { margin: 0 0 4px; font-size: 16px; }
+  .card .sub { font-size: 13px; color: var(--grey); margin: 0 0 14px; }
+  pre {
+    margin: 0;
+    background: #11141a;
+    color: #d7dde6;
+    border-radius: 8px;
+    padding: 14px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  pre .c { color: #6b7686; }
+  .flow { list-style: none; padding: 0; margin: 0 0 14px; }
+  .flow li {
+    font-size: 13.5px;
+    padding: 6px 0 6px 24px;
+    position: relative;
+    color: var(--grey);
+  }
+  .flow li::before {
+    content: attr(data-n);
+    position: absolute; left: 0; top: 6px;
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    color: var(--teal);
+  }
+  .card.direct .flow li::before { color: var(--clay); }
+
+  /* caveat / honesty */
+  .note {
+    background: var(--paper);
+    border: 1px solid var(--hair);
+    border-left: 3px solid var(--grey-soft);
+    border-radius: 10px;
+    padding: 18px 20px;
+    font-size: 14.5px;
+    color: var(--grey);
+    margin-bottom: 14px;
+  }
+  .note b { color: var(--ink); }
+  .answer {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--teal);
+    background: var(--teal-wash);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  footer {
+    margin-top: 56px; padding-top: 20px;
+    border-top: 1px solid var(--hair);
+    font-family: var(--mono); font-size: 12px; color: var(--grey-soft);
+  }
+  code.inl { font-family: var(--mono); font-size: 12.5px; background: var(--ground); padding: 1px 5px; border-radius: 4px; }
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Proof of concept · Retail SharePoint lists</p>
+  <h1>Talking to data directly vs. through code execution</h1>
+  <p class="lede">Six retail questions, five SharePoint lists, the same answers every time — tried three ways. <b>Direct</b> hands the whole list to the model. <b>Microsoft Graph</b> asks the server to filter first. <b>Code execution</b> runs a small script and sends back only the answer. The thing we're counting is tokens: how much text the model has to read. Less is cheaper and faster. Graph only helps when the question is a simple "find these rows" lookup.</p>
+
+  <div class="band">
+    <div class="stat">
+      <span class="k cost">1,331,640</span>
+      <div class="l">tokens to read — direct access</div>
+    </div>
+    <div class="stat">
+      <span class="k graph">1,070,145</span>
+      <div class="l">tokens to read — Microsoft Graph</div>
+    </div>
+    <div class="stat">
+      <span class="k win">2,112</span>
+      <div class="l">tokens to read — code execution</div>
+    </div>
+  </div>
+  <p class="caption">Across the 6 questions: Graph cut the reading by <b style="color:var(--blue)">19.6%</b>, code execution cut it by <b style="color:var(--teal)">99.8%</b>. All three really ran; all three gave the same answers.</p>
+
+  <h2>How much the model had to read, question by question</h2>
+  <div id="rows"></div>
+
+  <h2>Three ways to get the same answer</h2>
+  <div class="mech">
+    <div class="card direct">
+      <h3 style="color:var(--clay)">Direct access</h3>
+      <p class="sub">The tool hands over the whole list.</p>
+      <ul class="flow">
+        <li data-n="1">Model asks for the Sales list</li>
+        <li data-n="2">All 4,000 rows come back</li>
+        <li data-n="3">The model has to read every one</li>
+        <li data-n="4">Then it works out the answer itself</li>
+      </ul>
+      <pre><span class="c"># the model reads all of this</span>
+[{"OrderLineID":90000,
+  "StoreID":1004,"Qty":3,
+  "LineRevenue":146.7, ...},
+ <span class="c">... ×4000 rows ...</span>]</pre>
+    </div>
+    <div class="card graph">
+      <h3 style="color:var(--blue)">Microsoft Graph</h3>
+      <p class="sub">The server filters first — if the filter is simple.</p>
+      <ul class="flow">
+        <li data-n="1">Model says "only store 1004, March"</li>
+        <li data-n="2">Server can match one column to one value</li>
+        <li data-n="3">It can't add up or combine lists</li>
+        <li data-n="4">So harder questions still send everything</li>
+      </ul>
+      <pre><span class="c"># works for a simple lookup</span>
+GET /lists/Sales/items
+ ?$filter=StoreID eq 1004
+   and Month eq '2025-03'
+<span class="c"># → 16 rows. need a total? all 4,000</span></pre>
+    </div>
+    <div class="card code">
+      <h3 style="color:var(--teal)">Code execution</h3>
+      <p class="sub">A small script does the work, sends back the answer.</p>
+      <ul class="flow">
+        <li data-n="1">Model reads a short list of what's available</li>
+        <li data-n="2">Writes a few lines of code</li>
+        <li data-n="3">The code runs where the data lives</li>
+        <li data-n="4">Only the final answer comes back</li>
+      </ul>
+      <pre><span class="c"># the model only reads the answer</span>
+rev = defaultdict(float)
+for s in sp.sales():
+    rev[s["ProductID"]] += \
+        s["LineRevenue"]
+<span class="c"># → "Black Sweater: $47,428"</span></pre>
+    </div>
+  </div>
+
+  <h2>Why Graph couldn't help</h2>
+  <p class="lede" style="font-size:16px;margin-bottom:22px">Graph is good at one thing: "give me the rows where this column equals this value." That's it. The moment a question needs more, Graph gives up and sends the whole list — so the model ends up reading just as much as direct access. Here are the four things it can't do, and the question each one broke on.</p>
+
+  <div class="note" style="border-left-color:var(--blue)">
+    <b>It can't add things up.</b> Questions like "total revenue by region" (Q3) or "top 5 products by sales" (Q1) need every sale added together. Graph has no way to total numbers on the server, so it sends all 4,000 sales rows and the model adds them up itself. No saving.
+  </div>
+  <div class="note" style="border-left-color:var(--blue)">
+    <b>It can't join two lists.</b> "Revenue by region" needs Sales (which has store IDs) matched with Stores (which has the region). Graph can't connect two lists, so both come over whole and the matching happens on the model's side.
+  </div>
+  <div class="note" style="border-left-color:var(--blue)">
+    <b>It can't compare two columns in the same row.</b> "Which items are below their reorder point" (Q2) means checking <code class="inl">OnHand &lt; ReorderPoint</code> — one column against another. Graph can only compare a column to a fixed value, so it can't do this at all and ships the entire Inventory list.
+  </div>
+  <div class="note" style="border-left-color:var(--blue)">
+    <b>It chokes on big lists.</b> SharePoint refuses to filter a list past <b>5,000 items</b> unless the column was specially indexed ahead of time. Real sales tables are far bigger than that, so the simple filter that worked in this demo would often just fail in production.
+  </div>
+  <div class="note">
+    <b>The one time it worked (Q6):</b> "list store 1004's March sales" is a plain lookup — one column equals one value, no adding, no joining. Graph handled it on the server and sent back 16 rows instead of 4,000. That's a <b style="color:var(--blue)">99.6%</b> cut, about as good as code execution.
+  </div>
+  <div class="note">
+    <b>Bottom line.</b> Use Graph for simple "find these rows" questions — it's easy and it works. For anything that totals, combines, or compares (the questions that actually cost a lot), Graph is no better than handing over the whole list. Code execution wins there because the adding, joining, and comparing all happen next to the data, and only the short answer comes back. The trade-off: you need a place to run the code, and the model has to write it correctly.
+  </div>
+
+  <h2>The answers (the same on all three)</h2>
+  <div id="answers"></div>
+
+  <h2>Tested against a live SharePoint tenant</h2>
+  <p class="lede" style="font-size:16px;margin-bottom:20px">Everything above uses generated data. To check it against reality, I pointed the same three approaches at a real company SharePoint over Microsoft Graph: a retail workforce dataset (stores, employees, shifts, scorecards, incentives) with 16 to 240 rows per file. Smaller data, so a smaller gap, but the shape held and the Graph behaviour matched the theory exactly.</p>
+
+  <div style="overflow-x:auto;margin-bottom:18px">
+  <table style="border-collapse:collapse;width:100%;font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums">
+    <thead>
+      <tr style="border-bottom:2px solid var(--hair);text-align:right">
+        <th style="text-align:left;padding:8px 10px;font-weight:600">Live question</th>
+        <th style="padding:8px 10px;color:var(--clay)">Direct</th>
+        <th style="padding:8px 10px;color:var(--blue)">Graph*</th>
+        <th style="padding:8px 10px;color:var(--teal)">Code</th>
+        <th style="padding:8px 10px;color:var(--blue)">Graph↓</th>
+        <th style="padding:8px 10px;color:var(--teal)">Code↓</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid var(--hair)"><td style="text-align:left;padding:7px 10px;font-family:var(--sans)">Avg revenue-attainment by store</td><td style="text-align:right;padding:7px 10px">14,586</td><td style="text-align:right;padding:7px 10px">4,824</td><td style="text-align:right;padding:7px 10px;color:var(--teal)">462</td><td style="text-align:right;padding:7px 10px;color:var(--blue)">67%</td><td style="text-align:right;padding:7px 10px;color:var(--teal)">97%</td></tr>
+      <tr style="border-bottom:1px solid var(--hair)"><td style="text-align:left;padding:7px 10px;font-family:var(--sans)">Employees under 80% target, per store</td><td style="text-align:right;padding:7px 10px">14,586</td><td style="text-align:right;padding:7px 10px">5,759</td><td style="text-align:right;padding:7px 10px;color:var(--teal)">517</td><td style="text-align:right;padding:7px 10px;color:var(--blue)">61%</td><td style="text-align:right;padding:7px 10px;color:var(--teal)">97%</td></tr>
+      <tr style="border-bottom:1px solid var(--hair)"><td style="text-align:left;padding:7px 10px;font-family:var(--sans)">Hours booked vs contracted per district</td><td style="text-align:right;padding:7px 10px">17,944</td><td style="text-align:right;padding:7px 10px">17,968</td><td style="text-align:right;padding:7px 10px;color:var(--teal)">439</td><td style="text-align:right;padding:7px 10px;color:var(--grey-soft)">0%</td><td style="text-align:right;padding:7px 10px;color:var(--teal)">98%</td></tr>
+      <tr style="border-bottom:1px solid var(--hair)"><td style="text-align:left;padding:7px 10px;font-family:var(--sans)">Top 5 earners + district manager</td><td style="text-align:right;padding:7px 10px">5,623</td><td style="text-align:right;padding:7px 10px">2,014</td><td style="text-align:right;padding:7px 10px;color:var(--teal)">407</td><td style="text-align:right;padding:7px 10px;color:var(--blue)">64%</td><td style="text-align:right;padding:7px 10px;color:var(--teal)">93%</td></tr>
+      <tr style="border-bottom:1px solid var(--hair)"><td style="text-align:left;padding:7px 10px;font-family:var(--sans)">Avg store-KPI attainment by district</td><td style="text-align:right;padding:7px 10px">6,744</td><td style="text-align:right;padding:7px 10px">6,768</td><td style="text-align:right;padding:7px 10px;color:var(--teal)">387</td><td style="text-align:right;padding:7px 10px;color:var(--grey-soft)">0%</td><td style="text-align:right;padding:7px 10px;color:var(--teal)">94%</td></tr>
+      <tr style="border-bottom:1px solid var(--hair)"><td style="text-align:left;padding:7px 10px;font-family:var(--sans)">Shift lines for one store, one day</td><td style="text-align:right;padding:7px 10px">16,311</td><td style="text-align:right;padding:7px 10px">440</td><td style="text-align:right;padding:7px 10px;color:var(--teal)">357</td><td style="text-align:right;padding:7px 10px;color:var(--blue)">97%</td><td style="text-align:right;padding:7px 10px;color:var(--teal)">98%</td></tr>
+      <tr style="border-top:2px solid var(--hair);font-weight:700"><td style="text-align:left;padding:9px 10px;font-family:var(--sans)">All six</td><td style="text-align:right;padding:9px 10px;color:var(--clay)">75,794</td><td style="text-align:right;padding:9px 10px;color:var(--blue)">37,773</td><td style="text-align:right;padding:9px 10px;color:var(--teal)">2,569</td><td style="text-align:right;padding:9px 10px;color:var(--blue)">50%</td><td style="text-align:right;padding:9px 10px;color:var(--teal)">97%</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="note">
+    <b>Code execution cut the reading by 97%, on every question.</b> Lower than the 99.8% on the generated data, and that's the point: these real tables have 16 to 240 rows, not thousands, so there's less to save. The mechanism is the same; the data is just smaller.
+  </div>
+  <div class="note" style="border-left-color:var(--blue)">
+    <b>Graph split exactly along the line the theory predicted.</b> It helped on the simple-shaped questions (filter a column, or take the top 5): 97% off the single-store lookup, 60 to 67% off the others. It did nothing, 0%, on the two questions that total and combine across files (hours by district, KPIs by district). Same story as the generated data, now on a live tenant.
+  </div>
+  <div class="note" style="border-left-color:var(--blue)">
+    <b>*The honest asterisk.</b> That Graph column is the best case, and it assumes the data lives in SharePoint <b>Lists</b>. On this tenant it doesn't: it's Excel files in a document library. Graph can read those files but can't hand back only the matching rows the way it can for a List, so in reality Graph here would tie Direct on all six. A lot of "SharePoint data" in the wild is Excel files, which quietly removes even the 50% Graph looked like it was winning.
+  </div>
+
+  <footer>
+    Generated dataset: 15 stores · 57 products · 510 inventory · 4,000 sales lines.
+    Live dataset: haiintel.sharepoint.com / Test_Team / Mock_Data, 8 retail files, fetched via Microsoft Graph.
+    Reproduce: <code class="inl">python harness.py</code> and <code class="inl">python real_benchmark.py</code>
+  </footer>
+</div>
+
+<script>
+  const results = __RESULTS__;
+
+  const rows = document.getElementById('rows');
+  const maxTok = Math.max(...results.map(r => r.direct_tokens));
+  const pct = v => (v / maxTok * 100);
+  for (const r of results) {
+    const el = document.createElement('div');
+    el.className = 'q';
+    el.innerHTML = `
+      <div class="q-head">
+        <span class="q-id">${r.id}</span>
+        <span class="q-text">${r.question}</span>
+        <span class="q-meta">${r.lists_pulled.join(' + ')} · ${r.direct_rows.toLocaleString()} rows${r.graph_helps ? ' → '+r.graph_rows.toLocaleString()+' via Graph' : ''}</span>
+      </div>
+      <div class="bars">
+        <div class="barrow">
+          <span class="tag">Direct</span>
+          <div class="track"><div class="fill cost" style="width:${pct(r.direct_tokens).toFixed(1)}%"></div></div>
+          <span class="num">${r.direct_tokens.toLocaleString()} <small>tok</small></span>
+        </div>
+        <div class="barrow">
+          <span class="tag">Graph</span>
+          <div class="track"><div class="fill graph" style="width:${Math.max(pct(r.graph_tokens),0.3).toFixed(1)}%"></div></div>
+          <span class="num">${r.graph_tokens.toLocaleString()} <small>tok · −${r.graph_savings_vs_direct}%</small></span>
+        </div>
+        <div class="barrow">
+          <span class="tag">Code exec</span>
+          <div class="track"><div class="fill win" style="width:${Math.max(pct(r.code_tokens),0.3).toFixed(1)}%"></div></div>
+          <span class="num">${r.code_tokens.toLocaleString()} <small>tok · −${r.savings_vs_direct}%</small></span>
+        </div>
+      </div>`;
+    rows.appendChild(el);
+  }
+
+  const ans = document.getElementById('answers');
+  for (const r of results) {
+    const el = document.createElement('div');
+    el.className = 'q';
+    el.innerHTML = `<div class="q-head"><span class="q-id">${r.id}</span>
+      <span class="q-text" style="font-weight:460">${r.question}</span></div>
+      <div>${r.answer.split('\n').map(a => `<span class="answer">${a}</span>`).join(' ')}</div>`;
+    ans.appendChild(el);
+  }
+</script>

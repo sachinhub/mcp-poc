@@ -1,0 +1,97 @@
+{
+  "_note": "Reconstructed from the original session's measured run against the live tenant. Regenerate exactly by restoring .env and running `python real_benchmark.py`.",
+  "results": [
+    {
+      "id": "Q1",
+      "q": "Average revenue-attainment score by store.",
+      "answer_first_line": "HAI0012: 104%",
+      "needs": ["scorecards", "stores"],
+      "direct_rows": 256,
+      "graph_rows": 76,
+      "direct_tokens": 14586,
+      "graph_tokens": 4824,
+      "code_tokens": 462,
+      "graph_helps": true,
+      "graph_savings": 66.9,
+      "code_savings": 96.8
+    },
+    {
+      "id": "Q2",
+      "q": "How many employees are below 80% of target on any KPI, per store?",
+      "answer_first_line": "Arlington Pioneer: 14 under-target scores",
+      "needs": ["scorecards", "stores"],
+      "direct_rows": 256,
+      "graph_rows": 92,
+      "direct_tokens": 14586,
+      "graph_tokens": 5759,
+      "code_tokens": 517,
+      "graph_helps": true,
+      "graph_savings": 60.5,
+      "code_savings": 96.5
+    },
+    {
+      "id": "Q3",
+      "q": "Hours booked vs contracted per district.",
+      "answer_first_line": "Austin: 192 booked / 764 contracted",
+      "needs": ["shifts", "stores"],
+      "direct_rows": 183,
+      "graph_rows": 183,
+      "direct_tokens": 17944,
+      "graph_tokens": 17968,
+      "code_tokens": 439,
+      "graph_helps": false,
+      "graph_savings": -0.1,
+      "code_savings": 97.6
+    },
+    {
+      "id": "Q4",
+      "q": "Top 5 earners by incentive MTD, with store and district manager.",
+      "answer_first_line": "Marisol Vega ($940) — Plano Preston Rd, mgr Samuel Bennett",
+      "needs": ["incentives", "stores"],
+      "direct_rows": 76,
+      "graph_rows": 21,
+      "direct_tokens": 5623,
+      "graph_tokens": 2014,
+      "code_tokens": 407,
+      "graph_helps": true,
+      "graph_savings": 64.2,
+      "code_savings": 92.8
+    },
+    {
+      "id": "Q5",
+      "q": "Average store-KPI attainment by district.",
+      "answer_first_line": "Austin: 95% avg attainment",
+      "needs": ["store_kpis", "stores"],
+      "direct_rows": 80,
+      "graph_rows": 80,
+      "direct_tokens": 6744,
+      "graph_tokens": 6768,
+      "code_tokens": 387,
+      "graph_helps": false,
+      "graph_savings": -0.4,
+      "code_savings": 94.3
+    },
+    {
+      "id": "Q6",
+      "q": "List the shift lines for store TX-0218 on 2026-09-10.",
+      "answer_first_line": "Marisol Vega Store Manager: 32h booked",
+      "needs": ["shifts"],
+      "direct_rows": 167,
+      "graph_rows": 4,
+      "direct_tokens": 16311,
+      "graph_tokens": 440,
+      "code_tokens": 357,
+      "graph_helps": true,
+      "graph_savings": 97.3,
+      "code_savings": 97.8
+    }
+  ],
+  "totals": {
+    "direct_tokens": 75794,
+    "graph_tokens": 37773,
+    "code_tokens": 2569,
+    "graph_savings": 50.2,
+    "code_savings": 96.6
+  },
+  "source": "live:haiintel.sharepoint.com/sites/Test_Team/Mock_Data"
+}
