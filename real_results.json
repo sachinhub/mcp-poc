@@ -1,89 +1,194 @@
 {
-  "_note": "Reconstructed from the original session's measured run against the live tenant. Regenerate exactly by restoring .env and running `python real_benchmark.py`.",
   "results": [
     {
       "id": "Q1",
       "q": "Average revenue-attainment score by store.",
-      "answer_first_line": "HAI0012: 104%",
-      "needs": ["scorecards", "stores"],
+      "answer": "HAI0012: 104%\nPlano Preston Rd: 109%\nDallas Oak Cliff: 93%\nGarland Broadway: 107%\nFort Worth Alta Mere: 105%\nArlington Pioneer: 78%\nHouston Heights: 108%\nHouston Gulfgate: 76%\nSugar Land Hwy 6: 106%\nPasadena Spencer: 90%\nAustin Ben White: 106%\nRound Rock Palm Valley: 108%\nSan Antonio Bandera: 90%\nNew Braunfels Walnut: 104%\nEl Paso Dyer St: 104%\nLubbock 34th St: 89%\nCorpus Christi Airline: 103%",
+      "needs": [
+        "scorecards",
+        "stores"
+      ],
       "direct_rows": 256,
       "graph_rows": 76,
       "direct_tokens": 14586,
       "graph_tokens": 4824,
       "code_tokens": 462,
       "graph_helps": true,
-      "graph_savings": 66.9,
-      "code_savings": 96.8
+      "graph_detail": [
+        [
+          "scorecards",
+          60,
+          240,
+          true,
+          "$filter=KPI eq 'Revenue attainment' \u2014 pushed"
+        ],
+        [
+          "stores",
+          16,
+          16,
+          false,
+          "join for store name \u2014 full list"
+        ]
+      ],
+      "code_savings": 96.8,
+      "graph_savings": 66.9
     },
     {
       "id": "Q2",
       "q": "How many employees are below 80% of target on any KPI, per store?",
-      "answer_first_line": "Arlington Pioneer: 14 under-target scores",
-      "needs": ["scorecards", "stores"],
+      "answer": "Arlington Pioneer: 14 under-target scores\nHouston Gulfgate: 13 under-target scores\nLubbock 34th St: 5 under-target scores\nDallas Oak Cliff: 4 under-target scores\nFort Worth Alta Mere: 4 under-target scores\nAustin Ben White: 4 under-target scores\nSan Antonio Bandera: 4 under-target scores\nCorpus Christi Airline: 4 under-target scores\nPlano Preston Rd: 3 under-target scores\nGarland Broadway: 3 under-target scores\nHouston Heights: 3 under-target scores\nSugar Land Hwy 6: 3 under-target scores\nPasadena Spencer: 3 under-target scores\nNew Braunfels Walnut: 3 under-target scores\nEl Paso Dyer St: 3 under-target scores\nRound Rock Palm Valley: 2 under-target scores\nHAI0012: 1 under-target scores",
+      "needs": [
+        "scorecards",
+        "stores"
+      ],
       "direct_rows": 256,
       "graph_rows": 92,
       "direct_tokens": 14586,
       "graph_tokens": 5759,
       "code_tokens": 517,
       "graph_helps": true,
-      "graph_savings": 60.5,
-      "code_savings": 96.5
+      "graph_detail": [
+        [
+          "scorecards",
+          76,
+          240,
+          true,
+          "$filter=fields/TargetPct lt 80 \u2014 pushed"
+        ],
+        [
+          "stores",
+          16,
+          16,
+          false,
+          "join for store name \u2014 full list"
+        ]
+      ],
+      "code_savings": 96.5,
+      "graph_savings": 60.5
     },
     {
       "id": "Q3",
       "q": "Hours booked vs contracted per district.",
-      "answer_first_line": "Austin: 192 booked / 764 contracted",
-      "needs": ["shifts", "stores"],
+      "answer": "Austin: 192 booked / 764 contracted\nCoastal Bend: 96 booked / 422 contracted\nDallas\u2013Fort Worth: 476 booked / 2190 contracted\nHouston: 384 booked / 1528 contracted\nSan Antonio: 160 booked / 724 contracted\nWest Texas: 192 booked / 764 contracted",
+      "needs": [
+        "shifts",
+        "stores"
+      ],
       "direct_rows": 183,
       "graph_rows": 183,
       "direct_tokens": 17944,
       "graph_tokens": 17968,
       "code_tokens": 439,
       "graph_helps": false,
-      "graph_savings": -0.1,
-      "code_savings": 97.6
+      "graph_detail": [
+        [
+          "shifts",
+          167,
+          167,
+          false,
+          "SUM by district \u2014 no server-side aggregation"
+        ],
+        [
+          "stores",
+          16,
+          16,
+          false,
+          "join for district \u2014 full list"
+        ]
+      ],
+      "code_savings": 97.6,
+      "graph_savings": -0.1
     },
     {
       "id": "Q4",
       "q": "Top 5 earners by incentive MTD, with store and district manager.",
-      "answer_first_line": "Marisol Vega ($940) — Plano Preston Rd, mgr Samuel Bennett",
-      "needs": ["incentives", "stores"],
+      "answer": "Marisol Vega ($940) \u2014 Plano Preston Rd, mgr Samuel Bennett\nCamille Duforest ($880) \u2014 Houston Heights, mgr Samuel Bennett\nAdele Marchetti ($860) \u2014 Round Rock Palm Valley, mgr Samuel Bennett\nSloane Whitaker ($820) \u2014 Austin Ben White, mgr Samuel Bennett\nBianca Ruiz ($810) \u2014 Garland Broadway, mgr Samuel Bennett",
+      "needs": [
+        "incentives",
+        "stores"
+      ],
       "direct_rows": 76,
       "graph_rows": 21,
       "direct_tokens": 5623,
       "graph_tokens": 2014,
       "code_tokens": 407,
       "graph_helps": true,
-      "graph_savings": 64.2,
-      "code_savings": 92.8
+      "graph_detail": [
+        [
+          "incentives",
+          5,
+          60,
+          true,
+          "$orderby=MTD desc & $top=5 \u2014 pushed"
+        ],
+        [
+          "stores",
+          16,
+          16,
+          false,
+          "join for store + manager \u2014 full list"
+        ]
+      ],
+      "code_savings": 92.8,
+      "graph_savings": 64.2
     },
     {
       "id": "Q5",
       "q": "Average store-KPI attainment by district.",
-      "answer_first_line": "Austin: 95% avg attainment",
-      "needs": ["store_kpis", "stores"],
+      "answer": "Austin: 95% avg attainment\nCoastal Bend: 93% avg attainment\nDallas\u2013Fort Worth: 89% avg attainment\nSan Antonio: 88% avg attainment\nWest Texas: 87% avg attainment\nHouston: 86% avg attainment",
+      "needs": [
+        "store_kpis",
+        "stores"
+      ],
       "direct_rows": 80,
       "graph_rows": 80,
       "direct_tokens": 6744,
       "graph_tokens": 6768,
       "code_tokens": 387,
       "graph_helps": false,
-      "graph_savings": -0.4,
-      "code_savings": 94.3
+      "graph_detail": [
+        [
+          "store_kpis",
+          64,
+          64,
+          false,
+          "AVG by district \u2014 no server-side aggregation"
+        ],
+        [
+          "stores",
+          16,
+          16,
+          false,
+          "join for district \u2014 full list"
+        ]
+      ],
+      "code_savings": 94.3,
+      "graph_savings": -0.4
     },
     {
       "id": "Q6",
       "q": "List the shift lines for store TX-0218 on 2026-09-10.",
-      "answer_first_line": "Marisol Vega Store Manager: 32h booked",
-      "needs": ["shifts"],
+      "answer": "Marisol Vega Store Manager: 32h booked\nDevon Price Assistant Manager: 32h booked\nHannah Lewis Sales Associate: 27.5h booked\nTara Okafor Delivery Specialist: 32h booked\n(4 lines)",
+      "needs": [
+        "shifts"
+      ],
       "direct_rows": 167,
       "graph_rows": 4,
       "direct_tokens": 16311,
       "graph_tokens": 440,
       "code_tokens": 357,
       "graph_helps": true,
-      "graph_savings": 97.3,
-      "code_savings": 97.8
+      "graph_detail": [
+        [
+          "shifts",
+          4,
+          167,
+          true,
+          "$filter=startswith(Store,'TX-0218') and Date eq '2026-09-10' \u2014 pushed"
+        ]
+      ],
+      "code_savings": 97.8,
+      "graph_savings": 97.3
     }
   ],
   "totals": {
