@@ -188,7 +188,6 @@ ALL     75,794      37,773    2,569    50.2%   96.6%
 | `retail_api.py` | typed API over the live retail files |
 | `inspect_data.py` | prints live schema and sample rows |
 | `real_benchmark.py` | runs and measures the live benchmark, writes `real_results.json` |
-| `article.md` | write-up of the experiment |
 | `report.html` | visual report (published as a Claude Artifact) |
 
 ## Reconstruction note
@@ -198,4 +197,4 @@ Recovered: all source files, the generated data (regenerated), and the measured
 live results. Not recovered: the original `.env` secret values (masked in the
 transcript, so use `.env.example`), the live `*.xlsx` source files (they lived in
 SharePoint), and `sharepoint_test.py` (a pre-existing credential-test script that
-was never captured in full). `article.pdf` was generated from `article.md`.
+was never captured in full).
